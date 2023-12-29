@@ -5,7 +5,7 @@
 # run with
 # docker run -d --restart always --privileged -v /home/admin/AI-Datasets:/model -e MODEL="/model/20230718_LLaMA-2/Llama-2-7B-Chat-GGUF/llama-2-7b-chat.Q4_K_M.gguf" -e NCTX="4096" -p 8001:8000 --name llama-cpp-server llama-cpp-server
 # on an Intel Mac this works as well but the run command is more likely
-# run -d --restart always --privileged -v /Users/admin/Documents/AI-Datasets:/model -e MODEL="/model/20230718_LLaMA-2/Llama-2-7B-Chat-GGUF/llama-2-7b-chat.Q4_K_M.gguf" -e NCTX="4096" -p 8001:8000 --name llama-cpp-server llama-cpp-server
+# run -d --restart always --privileged -v /Users/admin/Documents/AI-Datasets:/model -e MODEL="/model/20230718_LLaMA-2/Llama-2-7B-Chat-GGUF/llama-2-7b-chat.Q4_K_M.gguf" -e NCTX="4096" -p 8001:8000 -h 0.0.0.0 --name llama-cpp-server llama-cpp-server
 
 # test with
 # curl -X 'POST' 'http://localhost:8001/v1/chat/completions' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"max_tokens": 80, "stream": false, "temperature": 0.0, "messages": [{"content": "Write a short poem about the beauty of programming.", "role": "user"}]}'
