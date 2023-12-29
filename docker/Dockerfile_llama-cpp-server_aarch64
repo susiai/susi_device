@@ -1,0 +1,40 @@
+# Dockerfile for llama_cpp.server, can run on Mac Metal
+# compile this with
+# docker build -t llama-cpp-server -f ./Dockerfile-Linux-aarch64 .
+
+# run with
+# docker run -d --restart always --privileged -v /home/admin/AI-Datasets:/model -e MODEL="/model/20230718_LLaMA-2/Llama-2-7B-Chat-GGUF/llama-2-7b-chat.Q4_K_M.gguf" -e NCTX="4096" -p 8001:8000 --name llama-cpp-server llama-cpp-server
+
+# test with
+# curl -X 'POST' 'http://localhost:8001/v1/chat/completions' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"max_tokens": 80, "stream": false, "temperature": 0.0, "messages": [{"content": "Write a short poem about the beauty of programming.", "role": "user"}]}'
+
+# to compare speed, run natively without docker with:
+# CMAKE_ARGS="-DLLAMA_METAL=on" pip install --no-cache-dir llama-cpp-python starlette_context
+# python -m llama_cpp.server --model "/Users/mchristen/Documents/AI-Datasets/20230824_codellama/CodeLlama-7b-Instruct/ggml-model-Q8_0.gguf" --n_gpu_layers 1 --n_ctx 100000 --port "8002"
+
+# Use an official Python runtime as a parent image
+FROM python:3.12-slim
+
+# Install necessary build tools and compilers
+RUN pip install --upgrade pip
+RUN apt-get update && apt-get upgrade -y && apt-get install -y build-essential cmake git wget bash coreutils
+
+# Install Miniforge for Linux
+RUN wget https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Miniforge3-23.11.0-0-Linux-aarch64.sh
+RUN bash Miniforge3-23.11.0-0-Linux-aarch64.sh -b
+
+# Set environment variables for model path and n_ctx
+ENV MODEL="/model/20230718_LLaMA-2/CodeLlama-7b-Instruct/llama-2-7b-chat.Q4_K_M.gguf"
+ENV NCTX="4096"
+
+# Set CMAKE_ARGS environment variable (does not work because foundation framework is required)
+#ENV CMAKE_ARGS="-DLLAMA_METAL=on"
+
+# Install required Python packages
+RUN pip install llama-cpp-python sse_starlette starlette_context uvicorn fastapi pydantic_settings
+
+# Expose the desired port for the application
+EXPOSE 8000
+
+# Run the llama_cpp.server command with the specified parameters
+CMD python -m llama_cpp.server --model $MODEL --n_gpu_layers 1 --n_ctx $NCTX --port 8000 --host 0.0.0.0
